@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth dark" style="--cursor-x: 836px; --cursor-y: 45px;"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwNjA3NTIzNDYzNzM3MDQ4MDU3NyIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjX2Q3NjVhODU3ODY4MTdmZmNfaW5kZXguaHRtbC0xNDkifSwiZXhwIjoxNzkzOTE3MTkzLCJpYXQiOjE3OTM5MTM1OTMsImFsZyI6IlJTMjU2In0.VGOpNQr_Yn6bp7Ss-kklTdsDsl_NwxmKcBoEAMITMhCeTuv52comj4Twro-f7pbC3KIh2omqbIswo-AQ8LV7OKKo5Al3yAwBcNyIX3Noq3D8_WS6CF7V0Anut2IlWIah70HJs5ZZMU_pya4WdkZZjXy3L_HfvQd87Eq8Qtq24ij86RnE54zX7ZeWBjbzY1CJb6SCB8CfwsEiABr2IKOmXCrO-r3Wgk3Oe5q_iiuDgtfetgeHNjVKQSn-OD4QFxVl2PDrE6CfG6c7jK8N57nzBoSd-yeCSpwNapMFS5E2GFRCGnSGhwOr3SFwOsWCbOTik7OrJNuinGQlmQHZcO26Pg","c_d765a85786817ffc_index.html-149")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function() {
+  function normalizeSlug(str) {
+    try {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^p{L}p{N}s_-]/gu, '')
+        .replace(/s+/g, '-');
+    } catch (e) {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9s_-]/g, '')
+        .replace(/s+/g, '-');
+    }
+  }
+
+  function findTargetElement(hash) {
+    if (!hash || hash === '#') {
+      return null;
+    }
+    const rawId = hash.startsWith('#') ? hash.slice(1) : hash;
+    let decodedId = rawId;
+    try {
+      decodedId = decodeURIComponent(rawId);
+    } catch (e) {
+      // Ignore URI malformed errors.
+    }
+
+    // 1. Direct ID match (raw and decoded).
+    let target = document.getElementById(rawId) || document.getElementById(decodedId);
+    if (target) {
+      return target;
+    }
+
+    // 2. Name attribute match (<a name="...">).
+    try {
+      if (typeof CSS !== 'undefined' && CSS.escape) {
+        target =
+          document.querySelector('[name="' + CSS.escape(rawId) + '"]') ||
+          document.querySelector('[name="' + CSS.escape(decodedId) + '"]');
+      } else {
+        const namedElements = document.getElementsByName(rawId);
+        if (namedElements && namedElements.length > 0) {
+          return namedElements[0];
+        }
+      }
+    } catch (e) {
+      // Ignore querySelector syntax errors.
+    }
+    if (target) {
+      return target;
+    }
+
+    // 3. Match heading text by slug (for Markdown TOCs where headings lack explicit IDs).
+    const targetSlug = normalizeSlug(decodedId);
+    if (targetSlug) {
+      for (const heading of document.querySelectorAll('h1, h2, h3, h4, h5, h6')) {
+        if (normalizeSlug(heading.textContent || '') === targetSlug) {
+          return heading;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  document.addEventListener('click', function(event) {
+    const target = event.target;
+    const anchor = target && typeof target.closest === 'function' ? target.closest('a') : null;
+    if (!anchor) {
+      return;
+    }
+
+    const href = anchor.getAttribute('href');
+    if (
+      !href ||
+      href.trim().toLowerCase().startsWith('javascript:') ||
+      anchor.hasAttribute('download')
+    ) {
+      return;
+    }
+
+    // Check if the link is an in-page hash / anchor link.
+    if (href.startsWith('#')) {
+      event.preventDefault();
+      const targetElement = findTargetElement(href);
+      if (targetElement) {
+        targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+      }
+      return;
+    }
+
+    // Check if the URL has the same origin/pathname but with a hash.
+    try {
+      const url = new URL(anchor.href, window.location.href);
+      if (
+        url.hash &&
+        url.origin === window.location.origin &&
+        url.pathname === window.location.pathname
+      ) {
+        event.preventDefault();
+        const targetElement = findTargetElement(url.hash);
+        if (targetElement) {
+          targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+        return;
+      }
+    } catch (e) {
+      // Fall through if URL parsing fails.
+    }
+
+    // For all external or full navigation links, prevent iframe-level navigation
+    // (which breaks in AGSA WebView or sandboxed iframes) and ensure they open
+    // safely in a new tab/window.
+    if (anchor.target !== '_blank') {
+      event.preventDefault();
+      window.open(anchor.href, '_blank', 'noopener,noreferrer');
+    }
+  }, {capture: true});
+})();</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daulat Singh | Java &amp; Spring Boot Backend Engineer</title>
+    <meta name="description" content="Portfolio of Daulat Singh — Java &amp; Spring Boot Backend Engineer specializing in Scalable APIs, Spring AI, Spring Security, Docker, and Kubernetes.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        obsidian: '#07070a',
+                        glass: 'rgba(255, 255, 255, 0.03)',
+                        glassBorder: 'rgba(255, 255, 255, 0.09)',
+                        spring: '#6db33f',
+                        cyanGlow: '#38bdf8',
+                        emeraldGlow: '#34d399'
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --cursor-x: 50vw;
+            --cursor-y: 50vh;
+        }
+
+        body {
+            background-color: #07070a;
+            color: #f4f4f6;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            selection-background-color: rgba(56, 189, 248, 0.3);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #07070a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.14);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(56, 189, 248, 0.4);
+        }
+
+        /* Ambient Global Cursor Spotlight */
+        .global-spotlight {
+            pointer-events: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            background: radial-gradient(
+                750px circle at var(--cursor-x) var(--cursor-y),
+                rgba(56, 189, 248, 0.055),
+                rgba(52, 211, 153, 0.025) 40%,
+                transparent 80%
+            );
+            transition: opacity 0.3s ease;
+        }
+
+        /* Apple-Style Frosted Glass Card with Dynamic Mouse Spotlight */
+        .apple-glass {
+            position: relative;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+            overflow: hidden;
+            transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+        }
+
+        .apple-glass::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(
+                500px circle at var(--card-mouse-x, -500px) var(--card-mouse-y, -500px),
+                rgba(255, 255, 255, 0.11),
+                transparent 45%
+            );
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .apple-glass:hover::before {
+            opacity: 1;
+        }
+
+        .apple-glass:hover {
+            border-color: rgba(255, 255, 255, 0.18);
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.65),
+                0 0 35px rgba(56, 189, 248, 0.08),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+        }
+
+        /* Pill Navbar Frosted Glass */
+        .apple-nav {
+            background: rgba(12, 12, 18, 0.68);
+            backdrop-filter: blur(20px) saturate(190%);
+            -webkit-backdrop-filter: blur(20px) saturate(190%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+
+        /* Scroll Reveal Animation */
+        .reveal-up {
+            opacity: 0;
+            transform: translateY(28px) scale(0.985);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal-up.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Metallic Text Shimmer */
+        .text-metallic {
+            background: linear-gradient(180deg, #ffffff 0%, #d4d4d8 65%, #71717a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-spring-gradient {
+            background: linear-gradient(135deg, #6ee7b7 0%, #38bdf8 55%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Subtle Grid Overlay */
+        .bg-grid-pattern {
+            background-size: 48px 48px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 25%, #000 50%, transparent 100%);
+            -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 25%, #000 50%, transparent 100%);
+        }
+
+        /* Magnetic Button Smoothness */
+        .magnetic-btn {
+            transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+        }
+
+        /* Code Syntax Highlighting Utilities */
+        .token-keyword { color: #c084fc; }
+        .token-annotation { color: #fbbf24; }
+        .token-class { color: #38bdf8; }
+        .token-string { color: #6ee7b7; }
+        .token-comment { color: #6b7280; font-style: italic; }
+        .token-method { color: #93c5fd; }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:Inter, -apple-system, BlinkMacSystemFont, sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:JetBrains Mono, monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.-bottom-20{bottom:-5rem}.-left-20{left:-5rem}.-left-\[31px\]{left:-31px}.-right-20{right:-5rem}.-top-20{top:-5rem}.bottom-6{bottom:1.5rem}.bottom-\[-10\%\]{bottom:-10%}.left-0{left:0px}.left-\[15\%\]{left:15%}.left-\[35\%\]{left:35%}.right-0{right:0px}.right-6{right:1.5rem}.right-\[10\%\]{right:10%}.top-1\.5{top:0.375rem}.top-4{top:1rem}.top-\[-12\%\]{top:-12%}.top-\[25\%\]{top:25%}.z-0{z-index:0}.z-10{z-index:10}.z-20{z-index:20}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mt-0\.5{margin-top:0.125rem}.mt-1{margin-top:0.25rem}.mt-3{margin-top:0.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mt-6{margin-top:1.5rem}.block{display:block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-1\.5{height:0.375rem}.h-10{height:2.5rem}.h-11{height:2.75rem}.h-2{height:0.5rem}.h-2\.5{height:0.625rem}.h-3{height:0.75rem}.h-3\.5{height:0.875rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-7{height:1.75rem}.h-8{height:2rem}.h-80{height:20rem}.h-\[380px\]{height:380px}.h-\[420px\]{height:420px}.h-\[460px\]{height:460px}.h-full{height:100%}.max-h-40{max-height:10rem}.max-h-\[360px\]{max-height:360px}.min-h-screen{min-height:100vh}.w-1\.5{width:0.375rem}.w-10{width:2.5rem}.w-11{width:2.75rem}.w-2{width:0.5rem}.w-2\.5{width:0.625rem}.w-3{width:0.75rem}.w-3\.5{width:0.875rem}.w-4{width:1rem}.w-5{width:1.25rem}.w-7{width:1.75rem}.w-8{width:2rem}.w-80{width:20rem}.w-\[380px\]{width:380px}.w-\[420px\]{width:420px}.w-\[460px\]{width:460px}.w-full{width:100%}.min-w-0{min-width:0px}.max-w-2xl{max-width:42rem}.max-w-7xl{max-width:80rem}.max-w-full{max-width:100%}.max-w-lg{max-width:32rem}.max-w-md{max-width:28rem}.max-w-xl{max-width:36rem}.shrink-0{flex-shrink:0}.translate-y-4{--tw-translate-y:1rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes ping{75%, 100%{transform:scale(2);opacity:0}}.animate-ping{animation:ping 1s cubic-bezier(0, 0, 0.2, 1) infinite}@keyframes pulse{50%{opacity:.5}}.animate-pulse-slow{animation:pulse 5s cubic-bezier(0.4, 0, 0.6, 1) infinite}@keyframes spin{to{transform:rotate(360deg)}}.animate-spin{animation:spin 1s linear infinite}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-0\.5{gap:0.125rem}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-10{gap:2.5rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.gap-3\.5{gap:0.875rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.space-y-1\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.375rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.375rem * var(--tw-space-y-reverse))}.space-y-10 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(2.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(2.5rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-28 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(7rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(7rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.space-y-8 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(2rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(2rem * var(--tw-space-y-reverse))}.divide-y > :not([hidden]) ~ :not([hidden]){--tw-divide-y-reverse:0;border-top-width:calc(1px * calc(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px * var(--tw-divide-y-reverse))}.divide-white\/10 > :not([hidden]) ~ :not([hidden]){border-color:rgb(255 255 255 / 0.1)}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.scroll-smooth{scroll-behavior:smooth}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-\[32px\]{border-radius:32px}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-l{border-left-width:1px}.border-r{border-right-width:1px}.border-t{border-top-width:1px}.border-amber-500\/20{border-color:rgb(245 158 11 / 0.2)}.border-amber-500\/30{border-color:rgb(245 158 11 / 0.3)}.border-cyan-500\/20{border-color:rgb(6 182 212 / 0.2)}.border-cyan-500\/30{border-color:rgb(6 182 212 / 0.3)}.border-emerald-400{--tw-border-opacity:1;border-color:rgb(52 211 153 / var(--tw-border-opacity, 1))}.border-emerald-400\/40{border-color:rgb(52 211 153 / 0.4)}.border-emerald-500\/20{border-color:rgb(16 185 129 / 0.2)}.border-emerald-500\/30{border-color:rgb(16 185 129 / 0.3)}.border-indigo-400\/40{border-color:rgb(129 140 248 / 0.4)}.border-indigo-500\/20{border-color:rgb(99 102 241 / 0.2)}.border-indigo-500\/30{border-color:rgb(99 102 241 / 0.3)}.border-sky-400\/40{border-color:rgb(56 189 248 / 0.4)}.border-sky-500\/20{border-color:rgb(14 165 233 / 0.2)}.border-sky-500\/30{border-color:rgb(14 165 233 / 0.3)}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.border-white\/15{border-color:rgb(255 255 255 / 0.15)}.border-white\/20{border-color:rgb(255 255 255 / 0.2)}.border-white\/5{border-color:rgb(255 255 255 / 0.05)}.border-white\/25{border-color:rgb(255 255 255 / 0.25)}.border-t-transparent{border-top-color:transparent}.bg-\[\#050508\]\/75{background-color:rgb(5 5 8 / 0.75)}.bg-\[\#050508\]\/90{background-color:rgb(5 5 8 / 0.9)}.bg-amber-400\/80{background-color:rgb(251 191 36 / 0.8)}.bg-amber-500\/10{background-color:rgb(245 158 11 / 0.1)}.bg-amber-500\/15{background-color:rgb(245 158 11 / 0.15)}.bg-black\/25{background-color:rgb(0 0 0 / 0.25)}.bg-black\/30{background-color:rgb(0 0 0 / 0.3)}.bg-black\/40{background-color:rgb(0 0 0 / 0.4)}.bg-black\/60{background-color:rgb(0 0 0 / 0.6)}.bg-black\/80{background-color:rgb(0 0 0 / 0.8)}.bg-cyan-500\/10{background-color:rgb(6 182 212 / 0.1)}.bg-cyan-500\/15{background-color:rgb(6 182 212 / 0.15)}.bg-cyan-500\/20{background-color:rgb(6 182 212 / 0.2)}.bg-emerald-400{--tw-bg-opacity:1;background-color:rgb(52 211 153 / var(--tw-bg-opacity, 1))}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.bg-emerald-500\/10{background-color:rgb(16 185 129 / 0.1)}.bg-emerald-500\/15{background-color:rgb(16 185 129 / 0.15)}.bg-emerald-500\/20{background-color:rgb(16 185 129 / 0.2)}.bg-emerald-500\/80{background-color:rgb(16 185 129 / 0.8)}.bg-indigo-400{--tw-bg-opacity:1;background-color:rgb(129 140 248 / var(--tw-bg-opacity, 1))}.bg-indigo-500\/10{background-color:rgb(99 102 241 / 0.1)}.bg-indigo-500\/15{background-color:rgb(99 102 241 / 0.15)}.bg-indigo-500\/20{background-color:rgb(99 102 241 / 0.2)}.bg-rose-500\/80{background-color:rgb(244 63 94 / 0.8)}.bg-sky-400{--tw-bg-opacity:1;background-color:rgb(56 189 248 / var(--tw-bg-opacity, 1))}.bg-sky-500\/10{background-color:rgb(14 165 233 / 0.1)}.bg-sky-500\/15{background-color:rgb(14 165 233 / 0.15)}.bg-sky-500\/20{background-color:rgb(14 165 233 / 0.2)}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/10{background-color:rgb(255 255 255 / 0.1)}.bg-white\/15{background-color:rgb(255 255 255 / 0.15)}.bg-white\/5{background-color:rgb(255 255 255 / 0.05)}.bg-white\/\[0\.03\]{background-color:rgb(255 255 255 / 0.03)}.bg-white\/\[0\.04\]{background-color:rgb(255 255 255 / 0.04)}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-emerald-400\/20{--tw-gradient-from:rgb(52 211 153 / 0.2) var(--tw-gradient-from-position);--tw-gradient-to:rgb(52 211 153 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-emerald-500{--tw-gradient-from:#10b981 var(--tw-gradient-from-position);--tw-gradient-to:rgb(16 185 129 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-emerald-500\/90{--tw-gradient-from:rgb(16 185 129 / 0.9) var(--tw-gradient-from-position);--tw-gradient-to:rgb(16 185 129 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-sky-400\/20{--tw-gradient-to:rgb(56 189 248 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), rgb(56 189 248 / 0.2) var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-indigo-500\/20{--tw-gradient-to:rgb(99 102 241 / 0.2) var(--tw-gradient-to-position)}.to-sky-500{--tw-gradient-to:#0ea5e9 var(--tw-gradient-to-position)}.to-sky-500\/90{--tw-gradient-to:rgb(14 165 233 / 0.9) var(--tw-gradient-to-position)}.fill-current{fill:currentColor}.p-3{padding:0.75rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.p-7{padding:1.75rem}.p-8{padding:2rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-1\.5{padding-bottom:0.375rem}.pb-24{padding-bottom:6rem}.pb-4{padding-bottom:1rem}.pl-2{padding-left:0.5rem}.pl-6{padding-left:1.5rem}.pr-1{padding-right:0.25rem}.pr-2{padding-right:0.5rem}.pt-1{padding-top:0.25rem}.pt-2{padding-top:0.5rem}.pt-28{padding-top:7rem}.pt-3{padding-top:0.75rem}.pt-5{padding-top:1.25rem}.pt-6{padding-top:1.5rem}.text-left{text-align:left}.font-mono{font-family:JetBrains Mono, monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-base{font-size:1rem;line-height:1.5rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-normal{font-weight:400}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-\[1\.06\]{line-height:1.06}.leading-none{line-height:1}.leading-relaxed{line-height:1.625}.tracking-\[0\.2em\]{letter-spacing:0.2em}.tracking-tight{letter-spacing:-0.025em}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.text-cyan-300{--tw-text-opacity:1;color:rgb(103 232 249 / var(--tw-text-opacity, 1))}.text-cyan-400{--tw-text-opacity:1;color:rgb(34 211 238 / var(--tw-text-opacity, 1))}.text-emerald-300{--tw-text-opacity:1;color:rgb(110 231 183 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-emerald-400\/90{color:rgb(52 211 153 / 0.9)}.text-emerald-400\/95{color:rgb(52 211 153 / 0.95)}.text-indigo-300{--tw-text-opacity:1;color:rgb(165 180 252 / var(--tw-text-opacity, 1))}.text-indigo-400{--tw-text-opacity:1;color:rgb(129 140 248 / var(--tw-text-opacity, 1))}.text-sky-300{--tw-text-opacity:1;color:rgb(125 211 252 / var(--tw-text-opacity, 1))}.text-sky-400{--tw-text-opacity:1;color:rgb(56 189 248 / var(--tw-text-opacity, 1))}.text-sky-400\/90{color:rgb(56 189 248 / 0.9)}.text-slate-950{--tw-text-opacity:1;color:rgb(2 6 23 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-zinc-200{--tw-text-opacity:1;color:rgb(228 228 231 / var(--tw-text-opacity, 1))}.text-zinc-300{--tw-text-opacity:1;color:rgb(212 212 216 / var(--tw-text-opacity, 1))}.text-zinc-300\/90{color:rgb(212 212 216 / 0.9)}.text-zinc-400{--tw-text-opacity:1;color:rgb(161 161 170 / var(--tw-text-opacity, 1))}.text-zinc-500{--tw-text-opacity:1;color:rgb(113 113 122 / var(--tw-text-opacity, 1))}.underline{-webkit-text-decoration-line:underline;text-decoration-line:underline}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.opacity-0{opacity:0}.opacity-60{opacity:0.6}.opacity-75{opacity:0.75}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-emerald-500\/20{--tw-shadow-color:rgb(16 185 129 / 0.2);--tw-shadow:var(--tw-shadow-colored)}.shadow-white\/10{--tw-shadow-color:rgb(255 255 255 / 0.1);--tw-shadow:var(--tw-shadow-colored)}.ring-4{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.ring-emerald-500\/20{--tw-ring-color:rgb(16 185 129 / 0.2)}.ring-indigo-500\/20{--tw-ring-color:rgb(99 102 241 / 0.2)}.ring-sky-500\/20{--tw-ring-color:rgb(14 165 233 / 0.2)}.blur-\[100px\]{--tw-blur:blur(100px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-\[130px\]{--tw-blur:blur(130px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-\[140px\]{--tw-blur:blur(140px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-\[150px\]{--tw-blur:blur(150px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.selection\:bg-sky-500\/30 *::selection{background-color:rgb(14 165 233 / 0.3)}.selection\:text-sky-200 *::selection{--tw-text-opacity:1;color:rgb(186 230 253 / var(--tw-text-opacity, 1))}.selection\:bg-sky-500\/30::selection{background-color:rgb(14 165 233 / 0.3)}.selection\:text-sky-200::selection{--tw-text-opacity:1;color:rgb(186 230 253 / var(--tw-text-opacity, 1))}.hover\:border-emerald-400\/50:hover{border-color:rgb(52 211 153 / 0.5)}.hover\:border-sky-400\/50:hover{border-color:rgb(56 189 248 / 0.5)}.hover\:border-white\/30:hover{border-color:rgb(255 255 255 / 0.3)}.hover\:bg-emerald-500\/30:hover{background-color:rgb(16 185 129 / 0.3)}.hover\:bg-white\/10:hover{background-color:rgb(255 255 255 / 0.1)}.hover\:bg-white\/15:hover{background-color:rgb(255 255 255 / 0.15)}.hover\:bg-white\/20:hover{background-color:rgb(255 255 255 / 0.2)}.hover\:bg-white\/5:hover{background-color:rgb(255 255 255 / 0.05)}.hover\:bg-zinc-100:hover{--tw-bg-opacity:1;background-color:rgb(244 244 245 / var(--tw-bg-opacity, 1))}.hover\:from-emerald-400:hover{--tw-gradient-from:#34d399 var(--tw-gradient-from-position);--tw-gradient-to:rgb(52 211 153 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.hover\:to-sky-400:hover{--tw-gradient-to:#38bdf8 var(--tw-gradient-to-position)}.hover\:text-emerald-300:hover{--tw-text-opacity:1;color:rgb(110 231 183 / var(--tw-text-opacity, 1))}.hover\:text-indigo-300:hover{--tw-text-opacity:1;color:rgb(165 180 252 / var(--tw-text-opacity, 1))}.hover\:text-sky-300:hover{--tw-text-opacity:1;color:rgb(125 211 252 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.hover\:underline:hover{-webkit-text-decoration-line:underline;text-decoration-line:underline}.group:hover .group-hover\:translate-x-1{--tw-translate-x:0.25rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:border-emerald-400\/60{border-color:rgb(52 211 153 / 0.6)}.group:hover .group-hover\:bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.group:hover .group-hover\:bg-sky-400{--tw-bg-opacity:1;background-color:rgb(56 189 248 / var(--tw-bg-opacity, 1))}.group:hover .group-hover\:text-slate-950{--tw-text-opacity:1;color:rgb(2 6 23 / var(--tw-text-opacity, 1))}@media (min-width: 640px){.sm\:-left-\[47px\]{left:-47px}.sm\:block{display:block}.sm\:inline{display:inline}.sm\:flex-row{flex-direction:row}.sm\:gap-1{gap:0.25rem}.sm\:gap-2{gap:0.5rem}.sm\:space-y-36 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(9rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(9rem * var(--tw-space-y-reverse))}.sm\:p-12{padding:3rem}.sm\:p-4{padding:1rem}.sm\:p-6{padding:1.5rem}.sm\:p-8{padding:2rem}.sm\:px-5{padding-left:1.25rem;padding-right:1.25rem}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.sm\:pl-10{padding-left:2.5rem}.sm\:pl-3{padding-left:0.75rem}.sm\:pr-4{padding-right:1rem}.sm\:pt-36{padding-top:9rem}.sm\:text-2xl{font-size:1.5rem;line-height:2rem}.sm\:text-3xl{font-size:1.875rem;line-height:2.25rem}.sm\:text-5xl{font-size:3rem;line-height:1}.sm\:text-6xl{font-size:3.75rem;line-height:1}.sm\:text-\[13px\]{font-size:13px}.sm\:text-base{font-size:1rem;line-height:1.5rem}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}.sm\:text-xs{font-size:0.75rem;line-height:1rem}}@media (min-width: 768px){.md\:col-span-4{grid-column:span 4 / span 4}.md\:col-span-5{grid-column:span 5 / span 5}.md\:col-span-7{grid-column:span 7 / span 7}.md\:inline-block{display:inline-block}.md\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.md\:flex-row{flex-direction:row}.md\:items-end{align-items:flex-end}}@media (min-width: 1024px){.lg\:col-span-5{grid-column:span 5 / span 5}.lg\:col-span-7{grid-column:span 7 / span 7}.lg\:inline{display:inline}.lg\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.lg\:flex-col{flex-direction:column}.lg\:gap-12{gap:3rem}.lg\:divide-x > :not([hidden]) ~ :not([hidden]){--tw-divide-x-reverse:0;border-right-width:calc(1px * var(--tw-divide-x-reverse));border-left-width:calc(1px * calc(1 - var(--tw-divide-x-reverse)))}.lg\:divide-y-0 > :not([hidden]) ~ :not([hidden]){--tw-divide-y-reverse:0;border-top-width:calc(0px * calc(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(0px * var(--tw-divide-y-reverse))}.lg\:p-14{padding:3.5rem}.lg\:px-8{padding-left:2rem;padding-right:2rem}.lg\:text-\[64px\]{font-size:64px}}</style></head>
+<body class="relative min-h-screen antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+    <!-- Interactive Ambient Particle/Mesh Canvas -->
+    <canvas id="ambient-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-60" width="948" height="828"></canvas>
+
+    <!-- Radial Cursor Spotlight Overlay -->
+    <div class="global-spotlight"></div>
+
+    <!-- Subtle Architectural Grid Background -->
+    <div class="fixed inset-0 bg-grid-pattern pointer-events-none z-0"></div>
+
+    <!-- Ambient Glow Orbs -->
+    <div class="fixed top-[-12%] left-[15%] w-[420px] h-[420px] rounded-full bg-emerald-500/10 blur-[130px] pointer-events-none z-0 animate-pulse-slow"></div>
+    <div class="fixed top-[25%] right-[10%] w-[380px] h-[380px] rounded-full bg-sky-500/10 blur-[140px] pointer-events-none z-0 animate-pulse-slow"></div>
+    <div class="fixed bottom-[-10%] left-[35%] w-[460px] h-[460px] rounded-full bg-indigo-500/10 blur-[150px] pointer-events-none z-0"></div>
+
+    <!-- ==================== FLOATING APPLE GLASS NAVBAR ==================== -->
+    <header class="fixed top-4 left-0 right-0 z-50 px-4 flex justify-center">
+        <nav class="apple-nav rounded-full px-3 py-2 sm:px-5 sm:py-2.5 flex items-center gap-1 sm:gap-2 max-w-full overflow-x-auto no-scrollbar">
+            <!-- Brand Monogram -->
+            <a href="#overview" class="flex items-center gap-2.5 pr-2 sm:pr-4 border-r border-white/10 group shrink-0">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400/20 via-sky-400/20 to-indigo-500/20 border border-white/20 flex items-center justify-center text-xs font-bold tracking-wider text-white group-hover:border-emerald-400/60 transition-colors">
+                    DS
+                </div>
+                <div class="hidden sm:block">
+                    <span class="text-xs font-semibold tracking-tight text-white block leading-none">Daulat Singh</span>
+                    <span class="text-[10px] font-mono text-emerald-400/90 block mt-0.5">Spring Boot • AI</span>
+                </div>
+            </a>
+
+            <!-- Navigation Links -->
+            <div class="flex items-center gap-0.5 sm:gap-1 text-xs sm:text-sm font-medium text-zinc-400 shrink-0">
+                <a href="#overview" class="px-2.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition-all">Overview</a>
+                <a href="#bento-stack" class="px-2.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition-all">Bento Stack</a>
+                <a href="#api-lab" class="px-2.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition-all flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span>API Lab</span>
+                </a>
+                <a href="#blueprints" class="hidden md:inline-block px-2.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition-all">Blueprints</a>
+                <a href="#journey" class="px-2.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition-all">Journey</a>
+                <a href="#contact" class="px-2.5 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition-all">Contact</a>
+            </div>
+
+            <!-- Action Buttons: Go Live Guide & Direct HTML Download -->
+            <div class="flex items-center gap-1.5 pl-2 sm:pl-3 border-l border-white/10 shrink-0">
+                <button onclick="openDeployModal()" class="text-[11px] sm:text-xs font-medium px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-zinc-200 border border-white/10 transition-all flex items-center gap-1.5" title="See how to publish this website for free in 60 seconds">
+                    <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="hidden lg:inline">How to Go Live</span>
+                </button>
+                <button onclick="downloadPortfolioHTML()" class="magnetic-btn text-[11px] sm:text-xs font-semibold px-3.5 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/90 to-sky-500/90 hover:from-emerald-400 hover:to-sky-400 text-slate-950 shadow-lg shadow-emerald-500/20 flex items-center gap-1.5" style="transform: translate(-3.44701px, 0.340328px);">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span>Download HTML</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
+    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 sm:pt-36 pb-24 space-y-28 sm:space-y-36">
+
+        <!-- ==================== 1. HERO SECTION ==================== -->
+        <section id="overview" class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+            
+            <!-- Left Column: Kinetic Typography & Bio -->
+            <div class="lg:col-span-7 space-y-6 reveal-up active">
+                <!-- Status Pill -->
+                <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full apple-glass border border-emerald-500/30 text-xs font-medium text-emerald-300">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span>Open to Software Developer Roles • India &amp; Remote</span>
+                </div>
+
+                <!-- Main Headline -->
+                <div class="space-y-2">
+                    <p class="text-xs sm:text-sm font-mono uppercase tracking-[0.2em] text-sky-400/90">
+                        DAULAT SINGH • B.E. ECE → BACKEND ENGINEER
+                    </p>
+                    <h1 class="text-4xl sm:text-6xl lg:text-[64px] font-extrabold tracking-tight leading-[1.06]">
+                        <span class="text-metallic">Engineering Resilient</span><br>
+                        <span class="text-spring-gradient">Java &amp; Spring Boot</span><br>
+                        <span class="text-metallic">Cloud Systems.</span>
+                    </h1>
+                </div>
+
+                <!-- Crafted Story Bio -->
+                <p class="text-base sm:text-lg text-zinc-300/90 leading-relaxed max-w-2xl font-normal">
+                    From dissecting complex global technology patents to architecting production-grade backend systems. As an <span class="text-white font-medium">Electronics &amp; Communication Engineering</span> graduate with a year of analytical experience as a <span class="text-white font-medium">Patent Analyst at Sagacious Research IP</span>, I bring rare precision, deep technical comprehension, and clear communication to software engineering. Now pursuing my core passion: building resilient, secure, and intelligent backends powered by <span class="text-emerald-300 font-mono text-sm">Spring Boot</span>, <span class="text-sky-300 font-mono text-sm">Spring AI</span>, <span class="text-indigo-300 font-mono text-sm">Spring Security</span>, <span class="text-sky-300 font-mono text-sm">Docker</span>, and <span class="text-indigo-300 font-mono text-sm">Kubernetes</span>.
+                </p>
+
+                <!-- Key Highlights Strip -->
+                <div class="grid grid-cols-3 gap-3 pt-1 max-w-xl">
+                    <div class="apple-glass rounded-2xl p-3.5 border border-white/10" style="--card-mouse-x: 19.00852394104004px; --card-mouse-y: 107.71875762939453px;">
+                        <div class="text-xl sm:text-2xl font-bold text-white font-mono">Java + Spring</div>
+                        <div class="text-xs text-zinc-400 mt-0.5">Core Backend Stack</div>
+                    </div>
+                    <div class="apple-glass rounded-2xl p-3.5 border border-white/10">
+                        <div class="text-xl sm:text-2xl font-bold text-emerald-400 font-mono">1+ Year</div>
+                        <div class="text-xs text-zinc-400 mt-0.5">Tech Patent Analysis</div>
+                    </div>
+                    <div class="apple-glass rounded-2xl p-3.5 border border-white/10">
+                        <div class="text-xl sm:text-2xl font-bold text-sky-400 font-mono">Cloud + AI</div>
+                        <div class="text-xs text-zinc-400 mt-0.5">Docker, K8s &amp; Spring AI</div>
+                    </div>
+                </div>
+
+                <!-- Magnetic CTA Buttons -->
+                <div class="flex flex-wrap items-center gap-3.5 pt-2">
+                    <a href="#api-lab" class="magnetic-btn px-6 py-3.5 rounded-2xl bg-white text-slate-950 font-semibold text-sm shadow-xl shadow-white/10 hover:bg-zinc-100 flex items-center gap-2 group" style="transform: translate(0px, 0px);">
+                        <span>Explore Interactive API Lab</span>
+                        <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                    </a>
+
+                    <a href="https://github.com/Daulat1249" target="_blank" rel="noopener noreferrer" class="magnetic-btn apple-glass px-5 py-3.5 rounded-2xl text-sm font-medium text-white hover:border-white/30 flex items-center gap-2.5">
+                        <svg class="w-4 h-4 text-zinc-200" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path></svg>
+                        <span>GitHub (@Daulat1249)</span>
+                    </a>
+
+                    <a href="mailto:daulat.dev1249@gmail.com" class="magnetic-btn apple-glass px-5 py-3.5 rounded-2xl text-sm font-medium text-zinc-200 hover:text-white flex items-center gap-2" target="_blank" rel="noopener noreferrer">
+                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        <span>Contact Me</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right Column: Interactive Spring Boot IDE & Live Server Boot Card -->
+            <div class="lg:col-span-5 reveal-up active">
+                <div class="apple-glass tilt-card rounded-3xl border border-white/15 shadow-2xl overflow-hidden" style="--card-mouse-x: 56.90461730957031px; --card-mouse-y: 799.8519287109375px; transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px);">
+                    <!-- macOS Window Top Bar -->
+                    <div class="px-4 py-3 bg-white/[0.04] border-b border-white/10 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-rose-500/80"></span>
+                            <span class="w-3 h-3 rounded-full bg-amber-400/80"></span>
+                            <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-xs font-mono text-zinc-400">
+                            <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                            <span>DaulatPortfolioApplication.java</span>
+                        </div>
+                        <button id="run-spring-btn" onclick="runSpringBootSimulation()" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-300 text-[11px] font-mono font-semibold flex items-center gap-1.5 transition-all">
+                            <svg class="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path></svg>
+                            <span id="run-spring-btn-text">Run Server</span>
+                        </button>
+                    </div>
+
+                    <!-- Code View -->
+                    <div class="p-5 font-mono text-xs sm:text-[13px] leading-relaxed overflow-x-auto bg-black/30">
+<pre class="text-zinc-300"><code><span class="token-annotation">@SpringBootApplication</span>
+<span class="token-annotation">@EnableWebSecurity</span>
+<span class="token-annotation">@RestController</span>
+<span class="token-keyword">public class</span> <span class="token-class">DaulatPortfolioApplication</span> {
+
+    <span class="token-keyword">public static void</span> <span class="token-method">main</span>(String[] args) {
+        SpringApplication.<span class="token-method">run</span>(
+            <span class="token-class">DaulatPortfolioApplication</span>.<span class="token-keyword">class</span>, args
+        );
+    }
+
+    <span class="token-annotation">@Bean</span>
+    <span class="token-keyword">public</span> DeveloperProfile <span class="token-method">backendEngineer</span>() {
+        <span class="token-keyword">return</span> DeveloperProfile.<span class="token-method">builder</span>()
+            .name(<span class="token-string">"Daulat Singh"</span>)
+            .degree(<span class="token-string">"B.E. ECE (Jul 2025)"</span>)
+            .priorRole(<span class="token-string">"Patent Analyst @ Sagacious IP"</span>)
+            .stack(List.<span class="token-method">of</span>(
+                <span class="token-string">"Java"</span>, <span class="token-string">"Spring Boot"</span>, <span class="token-string">"Spring AI"</span>,
+                <span class="token-string">"Spring Security"</span>, <span class="token-string">"Docker"</span>, <span class="token-string">"Kubernetes"</span>
+            ))
+            .status(<span class="token-string">"READY_FOR_PRODUCTION"</span>)
+            .<span class="token-method">build</span>();
+    }
+}</code></pre>
+                    </div>
+
+                    <!-- Interactive Live Spring Boot Console Output -->
+                    <div class="border-t border-white/10 bg-[#050508]/90 p-4 font-mono text-[11px] sm:text-xs">
+                        <div class="flex items-center justify-between text-zinc-400 mb-2 pb-1.5 border-b border-white/5">
+                            <span class="flex items-center gap-2">
+                                <span id="server-status-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                <span class="uppercase tracking-wider text-[10px] font-semibold text-zinc-300">Spring Boot Console • Port 8080</span>
+                            </span>
+                            <span id="server-uptime" class="text-[10px] text-emerald-400">PID 1249 • Tomcat Started</span>
+                        </div>
+                        <div id="spring-console-logs" class="space-y-1 text-zinc-400 max-h-40 overflow-y-auto pr-1">
+                            <div class="text-emerald-400/95">  .   ____          _            __ _ _</div>
+                            <div class="text-emerald-400/95"> /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \</div>
+                            <div class="text-emerald-400/95">( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \</div>
+                            <div class="text-sky-400"> :: Spring Boot ::               (v3.4.0)</div>
+                            <div><span class="text-zinc-500">INFO</span> o.s.b.w.embedded.tomcat.TomcatWebServer : Tomcat initialized with port 8080 (http)</div>
+                            <div><span class="text-zinc-500">INFO</span> o.s.s.web.DefaultSecurityFilterChain    : Will secure any request with [JwtAuthFilter, OAuth2]</div>
+                            <div><span class="text-zinc-500">INFO</span> o.s.ai.autoconfigure.SpringAiAutoConfig : Spring AI ChatClient &amp; Vector Pipeline initialized</div>
+                            <div><span class="text-zinc-500">INFO</span> io.kubernetes.client.PodHealthIndicator : Docker &amp; K8s readiness probe: <span class="text-emerald-400 font-semibold">UP</span></div>
+                            <div class="text-white font-medium">Started DaulatPortfolioApplication in 1.24 seconds</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 2. APPLE-STYLE 3D GLASS BENTO GRID (SKILLS & STACK) ==================== -->
+        <section id="bento-stack" class="space-y-10 reveal-up active">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-emerald-400 mb-2">
+                        <span>01 / ENGINEERING CAPABILITIES</span>
+                    </div>
+                    <h2 class="text-3xl sm:text-5xl font-bold tracking-tight text-metallic">
+                        The Backend Bento Stack.
+                    </h2>
+                </div>
+                <p class="text-sm sm:text-base text-zinc-400 max-w-md">
+                    Hover over any card to experience 3D perspective tilt and spotlight illumination. Built around modern Java enterprise standards.
+                </p>
+            </div>
+
+            <!-- Bento Grid Layout -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+                
+                <!-- Card 1: Core Java & Spring Boot (Span 7) -->
+                <div class="md:col-span-7 apple-glass tilt-card rounded-3xl p-7 sm:p-8 flex flex-col justify-between group" style="--card-mouse-x: 484.4664669036865px; --card-mouse-y: 185.77334594726562px; transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px);">
+                    <div class="space-y-4 relative z-10">
+                        <div class="flex items-center justify-between">
+                            <span class="px-3 py-1 rounded-full text-xs font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                                Core Backend Architecture
+                            </span>
+                            <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path></svg>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl sm:text-3xl font-bold text-white">
+                            Java &amp; Spring Boot Ecosystem
+                        </h3>
+                        <p class="text-zinc-300/90 text-sm sm:text-base leading-relaxed">
+                            Designing clean, modular, and testable backend services using modern Java (OOP, Streams, Concurrency, Collections) and Spring Boot. Focused on RESTful API design, layered architecture (Controller-Service-Repository), exception handling, and clean data validation.
+                        </p>
+                    </div>
+
+                    <div class="pt-6 mt-6 border-t border-white/10 flex flex-wrap gap-2 relative z-10">
+                        <span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-zinc-200">Java (Modern JDK)</span>
+                        <span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-emerald-300">Spring Boot 3.x</span>
+                        <span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-zinc-200">REST API Building</span>
+                        <span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-zinc-200">Spring MVC / Data JPA</span>
+                        <span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-zinc-200">Maven &amp; JSON</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Spring AI & Intelligent Pipelines (Span 5) -->
+                <div class="md:col-span-5 apple-glass tilt-card rounded-3xl p-7 sm:p-8 flex flex-col justify-between" style="--card-mouse-x: 44.98382568359375px; --card-mouse-y: 79.21409034729004px; transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px);">
+                    <div class="space-y-4 relative z-10">
+                        <div class="flex items-center justify-between">
+                            <span class="px-3 py-1 rounded-full text-xs font-mono bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                                Next-Gen AI Integration
+                            </span>
+                            <div class="w-10 h-10 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white">
+                            Spring AI Engineering
+                        </h3>
+                        <p class="text-zinc-300/90 text-sm leading-relaxed">
+                            Integrating Large Language Models directly into enterprise Java backends using <span class="text-sky-300 font-mono">Spring AI</span>. Crafting structured prompt templates, chat clients, and automated technical document analysis endpoints.
+                        </p>
+                    </div>
+
+                    <div class="pt-6 mt-6 border-t border-white/10 flex flex-wrap gap-2 relative z-10">
+                        <span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-sky-300">Spring AI</span>
+                        <span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-zinc-200">ChatClient API</span>
+                        <span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-zinc-200">Prompt Engineering</span>
+                        <span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-zinc-200">Structured Output</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Spring Security & Zero-Trust Auth (Span 4) -->
+                <div class="md:col-span-4 apple-glass tilt-card rounded-3xl p-7 flex flex-col justify-between" style="--card-mouse-x: 144.88484573364258px; --card-mouse-y: 418.74600410461426px; transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px);">
+                    <div class="space-y-4 relative z-10">
+                        <div class="flex items-center justify-between">
+                            <span class="px-3 py-1 rounded-full text-xs font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                                Security &amp; Identity
+                            </span>
+                            <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">
+                            Spring Security &amp; Auth
+                        </h3>
+                        <p class="text-zinc-300/90 text-sm leading-relaxed">
+                            Securing REST endpoints with custom security filter chains, stateless JWT token authentication, password hashing (BCrypt), and Role-Based Access Control (RBAC).
+                        </p>
+                    </div>
+                    <div class="pt-5 mt-5 border-t border-white/10 flex flex-wrap gap-1.5 relative z-10">
+                        <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-indigo-300">Spring Security</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-zinc-200">JWT</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-zinc-200">RBAC</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-zinc-200">Filter Chains</span>
+                    </div>
+                </div>
+
+                <!-- Card 4: Cloud-Native DevOps: Docker & Kubernetes (Span 4) -->
+                <div class="md:col-span-4 apple-glass tilt-card rounded-3xl p-7 flex flex-col justify-between" style="--card-mouse-x: 34.4173583984375px; --card-mouse-y: 166.5738639831543px; transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px);">
+                    <div class="space-y-4 relative z-10">
+                        <div class="flex items-center justify-between">
+                            <span class="px-3 py-1 rounded-full text-xs font-mono bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                                Cloud &amp; Containers
+                            </span>
+                            <div class="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">
+                            Docker &amp; Kubernetes
+                        </h3>
+                        <p class="text-zinc-300/90 text-sm leading-relaxed">
+                            Packaging Spring Boot microservices into lightweight, multi-stage Docker images and orchestrating container deployments, services, and scaling with Kubernetes.
+                        </p>
+                    </div>
+                    <div class="pt-5 mt-5 border-t border-white/10 flex flex-wrap gap-1.5 relative z-10">
+                        <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-cyan-300">Docker</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-cyan-300">Kubernetes (K8s)</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-zinc-200">Pods &amp; YAML</span>
+                    </div>
+                </div>
+
+                <!-- Card 5: The Analytical Patent Edge (Span 4) -->
+                <div class="md:col-span-4 apple-glass tilt-card rounded-3xl p-7 flex flex-col justify-between" style="--card-mouse-x: 136.52362060546875px; --card-mouse-y: 209.458984375px; transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px);">
+                    <div class="space-y-4 relative z-10">
+                        <div class="flex items-center justify-between">
+                            <span class="px-3 py-1 rounded-full text-xs font-mono bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                                Unique Differentiator
+                            </span>
+                            <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">
+                            Systems &amp; Patent Rigor
+                        </h3>
+                        <p class="text-zinc-300/90 text-sm leading-relaxed">
+                            1 year at <span class="text-white font-medium">Sagacious Research IP</span> analyzing complex global inventions trained me to read specifications deeply, spot edge cases early, and write crystal-clear technical documentation.
+                        </p>
+                    </div>
+                    <div class="pt-5 mt-5 border-t border-white/10 flex flex-wrap gap-1.5 relative z-10">
+                        <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-amber-300">System Analysis</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-zinc-200">API Docs</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-mono text-zinc-200">B.E. ECE</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== 3. INTERACTIVE SPRING BOOT API PLAYGROUND ==================== -->
+        <section id="api-lab" class="space-y-8 reveal-up active">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-sky-400 mb-2">
+                        <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+                        <span>02 / INTERACTIVE BACKEND SANDBOX</span>
+                    </div>
+                    <h2 class="text-3xl sm:text-5xl font-bold tracking-tight text-metallic">
+                        Live Spring Boot API Playground.
+                    </h2>
+                </div>
+                <p class="text-sm sm:text-base text-zinc-400 max-w-lg">
+                    Test my backend architecture thinking right in your browser. Select an endpoint below and click <span class="text-emerald-400 font-mono font-medium">Send Request</span> to inspect the controller logic and JSON payload.
+                </p>
+            </div>
+
+            <!-- Interactive Postman / Swagger Style Glass Console -->
+            <div class="apple-glass rounded-3xl border border-white/15 overflow-hidden shadow-2xl" style="--card-mouse-x: 333.00852394104004px; --card-mouse-y: 143.1988639831543px;">
+                
+                <!-- Top Endpoint Selector Tabs -->
+                <div class="bg-white/[0.03] border-b border-white/10 p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-2" id="endpoint-tabs">
+                        <button onclick="selectEndpoint(0)" id="ep-tab-0" class="ep-tab px-3.5 py-2 rounded-xl text-xs font-mono font-medium transition-all bg-white/15 text-white border border-white/25 flex items-center gap-2 shadow-sm">
+                            <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">GET</span>
+                            <span>/api/v1/developer/profile</span>
+                        </button>
+                        <button onclick="selectEndpoint(1)" id="ep-tab-1" class="ep-tab px-3.5 py-2 rounded-xl text-xs font-mono font-medium transition-all bg-white/5 text-zinc-400 hover:text-white border border-white/5 flex items-center gap-2">
+                            <span class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 text-[10px] font-bold">POST</span>
+                            <span>/api/v1/spring-ai/patent-summarizer</span>
+                        </button>
+                        <button onclick="selectEndpoint(2)" id="ep-tab-2" class="ep-tab px-3.5 py-2 rounded-xl text-xs font-mono font-medium transition-all bg-white/5 text-zinc-400 hover:text-white border border-white/5 flex items-center gap-2">
+                            <span class="px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-bold">POST</span>
+                            <span>/api/v1/auth/jwt-handshake</span>
+                        </button>
+                        <button onclick="selectEndpoint(3)" id="ep-tab-3" class="ep-tab px-3.5 py-2 rounded-xl text-xs font-mono font-medium transition-all bg-white/5 text-zinc-400 hover:text-white border border-white/5 flex items-center gap-2">
+                            <span class="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 text-[10px] font-bold">GET</span>
+                            <span>/actuator/kube-health</span>
+                        </button>
+                    </div>
+
+                    <button onclick="triggerApiRequest()" id="send-api-btn" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-slate-950 font-mono font-bold text-xs shadow-lg shadow-emerald-500/20 flex items-center gap-2 transition-all shrink-0">
+                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+                        <span>Send Request</span>
+                    </button>
+                </div>
+
+                <!-- URL Bar -->
+                <div class="px-4 py-3 bg-black/40 border-b border-white/10 flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
+                    <div class="flex items-center gap-3 overflow-x-auto">
+                        <span id="active-method-badge" class="px-2.5 py-1 rounded-md border font-bold bg-emerald-500/20 text-emerald-300 border-emerald-500/30">GET</span>
+                        <span class="text-zinc-400">https://api.daulatsingh.dev<span id="active-url-path" class="text-white font-semibold">/api/v1/developer/profile</span></span>
+                    </div>
+                    <div class="flex items-center gap-4 text-[11px]">
+                        <span class="text-zinc-400">Status: <strong id="api-status-code" class="text-emerald-400">200 OK</strong></span>
+                        <span class="text-zinc-400">Latency: <strong id="api-latency" class="text-sky-400">14 ms</strong></span>
+                        <span class="text-zinc-400 hidden sm:inline">Auth: <strong class="text-indigo-300">Bearer JWT</strong></span>
+                    </div>
+                </div>
+
+                <!-- Split View: Spring Boot Controller Code (Left) & Live JSON Response (Right) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-white/10">
+                    
+                    <!-- Left: Underlying Spring Boot Controller Snippet -->
+                    <div class="lg:col-span-5 p-5 sm:p-6 bg-black/25 flex flex-col justify-between">
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-mono uppercase tracking-wider text-zinc-400">Spring Boot Controller Implementation</span>
+                                <span id="controller-tag" class="text-[11px] font-mono px-2 py-0.5 rounded bg-white/5 text-emerald-300 border border-white/10">@GetMapping("/profile")</span>
+                            </div>
+                            <p id="endpoint-desc" class="text-xs sm:text-sm text-zinc-300 leading-relaxed">Fetches Daulat Singh's structured developer profile, combining his B.E. ECE engineering foundation, 1-year Patent Analyst experience at Sagacious Research IP, and Java Spring Boot backend stack.</p>
+                            <div class="p-4 rounded-2xl bg-[#050508]/90 border border-white/10 font-mono text-xs leading-relaxed overflow-x-auto">
+                                <pre id="controller-code-block" class="text-zinc-200">@RestController
+@RequestMapping("/api/v1/developer")
+public class DeveloperProfileController {
+
+    @GetMapping("/profile")
+    public ResponseEntity&lt;DeveloperDTO&gt; getProfile() {
+        return ResponseEntity.ok(
+            DeveloperDTO.of(
+                "Daulat Singh",
+                "Java &amp; Spring Boot Backend Developer",
+                "B.E. ECE (July 2025)",
+                "1 Yr Patent Analyst @ Sagacious Research IP"
+            )
+        );
+    }
+}</pre>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-zinc-400">
+                            <span>Framework: Spring Boot 3.4 + Java 21</span>
+                            <span class="text-emerald-400">Thread-Safe</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: JSON Response Payload -->
+                    <div class="lg:col-span-7 p-5 sm:p-6 bg-[#050508]/75 relative">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-mono uppercase tracking-wider text-zinc-400">HTTP Response Body (application/json)</span>
+                            <button onclick="copyJsonResponse()" class="text-xs font-mono text-zinc-400 hover:text-white px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                <span id="copy-json-label">Copy JSON</span>
+                            </button>
+                        </div>
+
+                        <div id="json-loading-overlay" class="hidden absolute inset-0 bg-[#050508]/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-3">
+                            <div class="w-8 h-8 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin"></div>
+                            <span class="text-xs font-mono text-emerald-300">Executing Spring Filter Chain &amp; Controller...</span>
+                        </div>
+
+                        <div class="p-4 rounded-2xl bg-black/60 border border-white/10 font-mono text-xs sm:text-[13px] leading-relaxed overflow-x-auto max-h-[360px]">
+                            <pre id="json-response-block" class="text-emerald-300">{
+  "status": 200,
+  "timestamp": "2026-04-15T10:30:00Z",
+  "developer": {
+    "name": "Daulat Singh",
+    "location": "India",
+    "role": "Java &amp; Spring Boot Software Developer",
+    "education": "B.E. in Electronics &amp; Communication Engineering (Graduated July 2025)",
+    "experience": {
+      "title": "Patent Analyst",
+      "organization": "Sagacious Research IP",
+      "duration": "Jan 2025 - Apr 2026 (1+ Year)",
+      "transferableEdge": "Deep system architecture analysis, technical articulation, and edge-case discovery"
+    },
+    "technicalStack": [
+      "Java",
+      "Spring Boot",
+      "RESTful API Building",
+      "Spring Security (JWT / RBAC)",
+      "Spring AI",
+      "Docker",
+      "Kubernetes"
+    ],
+    "links": {
+      "email": "daulat.dev1249@gmail.com",
+      "github": "https://github.com/Daulat1249"
+    },
+    "hiringStatus": "AVAILABLE_FOR_IMMEDIATE_JOINING"
+  }
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 4. BACKEND ARCHITECTURE BLUEPRINTS (CURRENT LAB BUILDS) ==================== -->
+        <section id="blueprints" class="space-y-10 reveal-up active">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-indigo-400 mb-2">
+                        <span>03 / SYSTEM BLUEPRINTS &amp; ACTIVE BUILDS</span>
+                    </div>
+                    <h2 class="text-3xl sm:text-5xl font-bold tracking-tight text-metallic">
+                        What I’m Engineering.
+                    </h2>
+                </div>
+                <a href="https://github.com/Daulat1249" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-xs sm:text-sm font-mono text-sky-400 hover:text-sky-300 transition-colors">
+                    <span>Follow my code &amp; commits on GitHub (@Daulat1249)</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Blueprint 01 -->
+                <div class="apple-glass tilt-card rounded-3xl p-7 flex flex-col justify-between border border-white/10" style="--card-mouse-x: 199.70722770690918px; --card-mouse-y: 100.99050903320312px; transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px);">
+                    <div class="space-y-4 relative z-10">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-xs text-sky-400 font-semibold">BLUEPRINT // 01</span>
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-mono bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                                Domain + Spring AI
+                            </span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">
+                            AI-Powered Patent &amp; Technical Claim Analyzer API
+                        </h3>
+                        <p class="text-sm text-zinc-300/90 leading-relaxed">
+                            Inspired by my year at <span class="text-white font-medium">Sagacious Research IP</span>. A Spring Boot REST service integrated with <span class="text-sky-300 font-mono">Spring AI</span> that ingests dense patent claims or technical specifications and outputs structured novelty matrices, key taxonomy tags, and JSON summaries.
+                        </p>
+                        <!-- Mini Architecture Flow -->
+                        <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 font-mono text-[11px] text-zinc-300 space-y-1.5">
+                            <div class="text-zinc-500">// Pipeline Flow</div>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="px-2 py-0.5 rounded bg-white/5 text-white">REST POST</span>
+                                <span>→</span>
+                                <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300">Spring AI Prompt</span>
+                                <span>→</span>
+                                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Structured JSON</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-5 mt-6 border-t border-white/10 flex items-center justify-between relative z-10">
+                        <div class="flex flex-wrap gap-1.5">
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-white/5 text-zinc-300">Java</span>
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-white/5 text-zinc-300">Spring AI</span>
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-white/5 text-zinc-300">Docker</span>
+                        </div>
+                        <button onclick="selectEndpoint(1); document.getElementById('api-lab').scrollIntoView({behavior:'smooth'});" class="text-xs font-mono text-sky-400 hover:text-sky-300 flex items-center gap-1">
+                            <span>Test in Lab</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Blueprint 02 -->
+                <div class="apple-glass tilt-card rounded-3xl p-7 flex flex-col justify-between border border-white/10" style="--card-mouse-x: 189.3354206085205px; --card-mouse-y: 136.30096435546875px; transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px);">
+                    <div class="space-y-4 relative z-10">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-xs text-indigo-400 font-semibold">BLUEPRINT // 02</span>
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                                Spring Security
+                            </span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">
+                            Zero-Trust JWT Identity &amp; Role-Based Auth Service
+                        </h3>
+                        <p class="text-sm text-zinc-300/90 leading-relaxed">
+                            A stateless authentication and authorization microservice built with <span class="text-indigo-300 font-mono">Spring Security 6</span>. Implements custom <code class="text-zinc-200">OncePerRequestFilter</code> chains, JWT signing &amp; validation, BCrypt password encryption, and granular role-based endpoint protection.
+                        </p>
+                        <!-- Mini Architecture Flow -->
+                        <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 font-mono text-[11px] text-zinc-300 space-y-1.5">
+                            <div class="text-zinc-500">// Security Filter Chain</div>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="px-2 py-0.5 rounded bg-white/5 text-white">Client Request</span>
+                                <span>→</span>
+                                <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">JwtAuthFilter</span>
+                                <span>→</span>
+                                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">RBAC Context</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-5 mt-6 border-t border-white/10 flex items-center justify-between relative z-10">
+                        <div class="flex flex-wrap gap-1.5">
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-white/5 text-zinc-300">Spring Security</span>
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-white/5 text-zinc-300">JWT</span>
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-white/5 text-zinc-300">REST API</span>
+                        </div>
+                        <button onclick="selectEndpoint(2); document.getElementById('api-lab').scrollIntoView({behavior:'smooth'});" class="text-xs font-mono text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                            <span>Test in Lab</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Blueprint 03 -->
+                <div class="apple-glass tilt-card rounded-3xl p-7 flex flex-col justify-between border border-white/10" style="--card-mouse-x: 388.81446266174316px; --card-mouse-y: 162.12786865234375px; transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px);">
+                    <div class="space-y-4 relative z-10">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-xs text-emerald-400 font-semibold">BLUEPRINT // 03</span>
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                                Cloud-Native DevOps
+                            </span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">
+                            Containerized Spring Boot Cluster on Kubernetes
+                        </h3>
+                        <p class="text-sm text-zinc-300/90 leading-relaxed">
+                            Cloud-ready deployment workflow packaging Spring Boot APIs with multi-stage <span class="text-cyan-300 font-mono">Dockerfiles</span> and deploying them onto <span class="text-cyan-300 font-mono">Kubernetes</span> with Actuator health probes, ConfigMaps, and horizontal replica scaling.
+                        </p>
+                        <!-- Mini Architecture Flow -->
+                        <div class="p-3.5 rounded-2xl bg-black/40 border border-white/10 font-mono text-[11px] text-zinc-300 space-y-1.5">
+                            <div class="text-zinc-500">// Container Orchestration</div>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="px-2 py-0.5 rounded bg-white/5 text-white">Spring JAR</span>
+                                <span>→</span>
+                                <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300">Docker Image</span>
+                                <span>→</span>
+                                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">K8s Pods (3x)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-5 mt-6 border-t border-white/10 flex items-center justify-between relative z-10">
+                        <div class="flex flex-wrap gap-1.5">
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-white/5 text-zinc-300">Docker</span>
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-white/5 text-zinc-300">Kubernetes</span>
+                            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-white/5 text-zinc-300">Actuator</span>
+                        </div>
+                        <button onclick="selectEndpoint(3); document.getElementById('api-lab').scrollIntoView({behavior:'smooth'});" class="text-xs font-mono text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
+                            <span>Test in Lab</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== 5. CAREER & EDUCATION TIMELINE ==================== -->
+        <section id="journey" class="space-y-10 reveal-up active">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-emerald-400 mb-2">
+                        <span>04 / EXPERIENCE &amp; ACADEMIC MILESTONES</span>
+                    </div>
+                    <h2 class="text-3xl sm:text-5xl font-bold tracking-tight text-metallic">
+                        The Engineering Journey.
+                    </h2>
+                </div>
+                <p class="text-sm sm:text-base text-zinc-400 max-w-md">
+                    Combining formal engineering education, high-stakes intellectual property analysis, and modern Java backend mastery.
+                </p>
+            </div>
+
+            <div class="relative pl-6 sm:pl-10 border-l border-white/15 space-y-8">
+                
+                <!-- Milestone 1: Software Development Transition -->
+                <div class="relative group">
+                    <div class="absolute -left-[31px] sm:-left-[47px] top-1.5 w-4 h-4 rounded-full bg-emerald-400 ring-4 ring-emerald-500/20"></div>
+                    <div class="apple-glass tilt-card rounded-3xl p-6 sm:p-8 border border-emerald-500/30" style="--card-mouse-x: 363.4256057739258px; --card-mouse-y: 76.18115234375px; transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px);">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span class="px-3 py-1 rounded-full text-xs font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                                April 2026 – Present • Active Focus
+                            </span>
+                            <span class="text-xs font-mono text-zinc-400">India</span>
+                        </div>
+                        <h3 class="text-xl sm:text-2xl font-bold text-white">
+                            Java &amp; Spring Boot Backend Software Engineering
+                        </h3>
+                        <p class="text-sm text-emerald-300 font-mono mt-0.5">
+                            Pursuing Core Dream • Full-Stack Backend &amp; Cloud-Native Specialization
+                        </p>
+                        <p class="text-sm sm:text-base text-zinc-300/90 mt-3 leading-relaxed">
+                            Dedicated full-time to mastering enterprise backend engineering with <span class="text-white font-medium">Java</span> and <span class="text-white font-medium">Spring Boot</span>. Building production-grade RESTful APIs, integrating <span class="text-white font-medium">Spring AI</span> for intelligent workflows, securing microservices with <span class="text-white font-medium">Spring Security</span>, and containerizing workloads using <span class="text-white font-medium">Docker</span> and <span class="text-white font-medium">Kubernetes</span>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Milestone 2: Sagacious Research IP -->
+                <div class="relative group">
+                    <div class="absolute -left-[31px] sm:-left-[47px] top-1.5 w-4 h-4 rounded-full bg-sky-400 ring-4 ring-sky-500/20"></div>
+                    <div class="apple-glass tilt-card rounded-3xl p-6 sm:p-8" style="--card-mouse-x: 458.0707588195801px; --card-mouse-y: 36.9190673828125px; transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px);">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span class="px-3 py-1 rounded-full text-xs font-mono bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                                Jan 2025 – Apr 2026 • 1+ Year Experience
+                            </span>
+                            <span class="text-xs font-mono text-zinc-400">Sagacious Research IP</span>
+                        </div>
+                        <h3 class="text-xl sm:text-2xl font-bold text-white">
+                            Patent Analyst
+                        </h3>
+                        <p class="text-sm text-sky-300 font-mono mt-0.5">
+                            Sagacious Research IP • Technology &amp; Systems Architecture Analysis
+                        </p>
+                        <p class="text-sm sm:text-base text-zinc-300/90 mt-3 leading-relaxed">
+                            Conducted in-depth prior-art searches, patentability assessments, and technical landscape analyses across cutting-edge electronics, software, and telecommunications inventions. Developed an exceptional ability to rapidly comprehend complex system architectures, dissect edge cases, and articulate intricate technical concepts with precision.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Milestone 3: B.E. ECE Graduation -->
+                <div class="relative group">
+                    <div class="absolute -left-[31px] sm:-left-[47px] top-1.5 w-4 h-4 rounded-full bg-indigo-400 ring-4 ring-indigo-500/20"></div>
+                    <div class="apple-glass tilt-card rounded-3xl p-6 sm:p-8" style="--card-mouse-x: 504.52417373657227px; --card-mouse-y: 10.01434326171875px; transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px);">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span class="px-3 py-1 rounded-full text-xs font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                                Graduated July 2025
+                            </span>
+                            <span class="text-xs font-mono text-zinc-400">Bachelor of Engineering</span>
+                        </div>
+                        <h3 class="text-xl sm:text-2xl font-bold text-white">
+                            B.E. in Electronics &amp; Communication Engineering (ECE)
+                        </h3>
+                        <p class="text-sm text-indigo-300 font-mono mt-0.5">
+                            Class of 2025 • Engineering &amp; Computing Foundations
+                        </p>
+                        <p class="text-sm sm:text-base text-zinc-300/90 mt-3 leading-relaxed">
+                            Built a rigorous foundation in digital logic, computer networks, microprocessors, algorithmic problem-solving, and software programming—fueling my long-term ambition to architect scalable software systems.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== 6. CONTACT & ONE-CLICK CONNECT SECTION ==================== -->
+        <section id="contact" class="reveal-up active">
+            <div class="apple-glass rounded-[32px] p-8 sm:p-12 lg:p-14 border border-white/15 relative overflow-hidden" style="--card-mouse-x: 540.00852394104px; --card-mouse-y: 12.96026611328125px;">
+                <!-- Decorative Glow -->
+                <div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-emerald-500/15 blur-[100px] pointer-events-none"></div>
+                <div class="absolute -left-20 -top-20 w-80 h-80 rounded-full bg-sky-500/15 blur-[100px] pointer-events-none"></div>
+
+                <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                    <div class="lg:col-span-7 space-y-4">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-mono">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                            <span>Ready for Immediate Joining &amp; Technical Interviews</span>
+                        </div>
+                        <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-metallic">
+                            Let’s Build Resilient Backend Systems Together.
+                        </h2>
+                        <p class="text-zinc-300/90 text-sm sm:text-base max-w-xl leading-relaxed">
+                            Whether you’re hiring a <span class="text-white font-medium">Java / Spring Boot Developer</span>, looking for an engineer who understands <span class="text-white font-medium">Spring AI, Spring Security, Docker &amp; Kubernetes</span>, or want to discuss backend architecture—my inbox is open.
+                        </p>
+                    </div>
+
+                    <div class="lg:col-span-5 flex flex-col sm:flex-row lg:flex-col gap-3.5">
+                        <!-- Copy Email Card Button -->
+                        <button onclick="copyEmailAddress()" class="apple-glass w-full p-4 rounded-2xl border border-white/15 hover:border-emerald-400/50 flex items-center justify-between group transition-all text-left">
+                            <div class="flex items-center gap-3.5 min-w-0">
+                                <div class="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                </div>
+                                <div class="truncate">
+                                    <div class="text-xs font-mono text-zinc-400">Click to Copy Direct Email</div>
+                                    <div class="text-sm sm:text-base font-semibold text-white truncate">daulat.dev1249@gmail.com</div>
+                                </div>
+                            </div>
+                            <span id="email-copy-badge" class="px-2.5 py-1 rounded-lg bg-white/10 text-xs font-mono text-emerald-300 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-colors shrink-0">
+                                Copy
+                            </span>
+                        </button>
+
+                        <!-- GitHub Profile Card Button -->
+                        <a href="https://github.com/Daulat1249" target="_blank" rel="noopener noreferrer" class="apple-glass w-full p-4 rounded-2xl border border-white/15 hover:border-sky-400/50 flex items-center justify-between group transition-all">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-11 h-11 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path></svg>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-mono text-zinc-400">GitHub Repositories</div>
+                                    <div class="text-sm sm:text-base font-semibold text-white">github.com/Daulat1249</div>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-lg bg-white/10 text-xs font-mono text-sky-300 group-hover:bg-sky-400 group-hover:text-slate-950 transition-colors">
+                                Open ↗
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="relative z-10 border-t border-white/10 py-8 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span>© 2026 Daulat Singh • Crafted with Apple-Style Glassmorphism</span>
+            </div>
+            <div class="flex items-center gap-4 font-mono">
+                <button onclick="openDeployModal()" class="text-sky-400 hover:underline">How to Publish Live (Free)</button>
+                <span>•</span>
+                <button onclick="downloadPortfolioHTML()" class="text-emerald-400 hover:underline">Download index.html</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== TOAST NOTIFICATION ==================== -->
+    <div id="glass-toast" class="fixed bottom-6 right-6 z-50 pointer-events-none opacity-0 translate-y-4 transition-all duration-300">
+        <div class="apple-nav px-4 py-3 rounded-2xl border border-emerald-400/40 flex items-center gap-3 shadow-2xl">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            <span id="glass-toast-text" class="text-xs sm:text-sm font-medium text-white">Copied to clipboard!</span>
+        </div>
+    </div>
+
+    <!-- ==================== "HOW TO GO LIVE IN 60 SECONDS" MODAL ==================== -->
+    <div id="deploy-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="apple-glass max-w-xl w-full rounded-3xl p-6 sm:p-8 border border-white/20 space-y-6 relative">
+            <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                <div>
+                    <span class="text-xs font-mono uppercase tracking-wider text-emerald-400">ZERO-CODING DEPLOYMENT GUIDE</span>
+                    <h3 class="text-xl sm:text-2xl font-bold text-white mt-0.5">Put Your Website Live in 60 Seconds</h3>
+                </div>
+                <button onclick="closeDeployModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-zinc-300">
+                    ×
+                </button>
+            </div>
+
+            <div class="space-y-4 text-sm text-zinc-300">
+                <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex gap-3.5">
+                    <span class="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-mono font-bold flex items-center justify-center shrink-0">1</span>
+                    <div>
+                        <div class="font-semibold text-white">Download your finished website file</div>
+                        <p class="text-xs text-zinc-400 mt-1">Click the green <strong class="text-emerald-300">"Download index.html"</strong> button below. It saves your entire website onto your computer as `index.html`.</p>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex gap-3.5">
+                    <span class="w-7 h-7 rounded-full bg-sky-500/20 border border-sky-400/40 text-sky-300 font-mono font-bold flex items-center justify-center shrink-0">2</span>
+                    <div>
+                        <div class="font-semibold text-white">Drag &amp; Drop onto Netlify Drop (or GitHub Pages)</div>
+                        <p class="text-xs text-zinc-400 mt-1">
+                            Put `index.html` inside a new folder on your computer, open <a href="https://app.netlify.com/drop" target="_blank" rel="noopener noreferrer" class="text-sky-400 underline">app.netlify.com/drop</a>, and drag that folder onto the page—or upload `index.html` to a repository named <code class="text-white">Daulat1249.github.io</code> on your GitHub!
+                        </p>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex gap-3.5">
+                    <span class="w-7 h-7 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 font-mono font-bold flex items-center justify-center shrink-0">3</span>
+                    <div>
+                        <div class="font-semibold text-white">Share your live link on your Resume &amp; LinkedIn!</div>
+                        <p class="text-xs text-zinc-400 mt-1">You immediately get a fast, free `https://` link that recruiters anywhere in the world can open on mobile or desktop.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-end gap-3 pt-2">
+                <button onclick="closeDeployModal()" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-medium text-zinc-300">
+                    Close
+                </button>
+                <button onclick="downloadPortfolioHTML()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-sky-500 text-slate-950 font-semibold text-xs flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span>Download index.html Now</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== INTERACTIVE JAVASCRIPT ENGINE ==================== -->
+    <script>
+        /* -----------------------------------------------------------
+         * 1. GLOBAL SPOTLIGHT & 3D APPLE GLASS TILT CARDS
+         * ----------------------------------------------------------- */
+        document.addEventListener('mousemove', (e) => {
+            document.documentElement.style.setProperty('--cursor-x', `${e.clientX}px`);
+            document.documentElement.style.setProperty('--cursor-y', `${e.clientY}px`);
+        });
+
+        // Card-level spotlight + subtle 3D perspective tilt
+        const glassCards = document.querySelectorAll('.apple-glass');
+        glassCards.forEach((card) => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--card-mouse-x', `${x}px`);
+                card.style.setProperty('--card-mouse-y', `${y}px`);
+
+                if (card.classList.contains('tilt-card') && window.innerWidth > 768) {
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const rotateX = ((y - centerY) / centerY) * -3.5;
+                    const rotateY = ((x - centerX) / centerX) * 3.5;
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateZ(2px)`;
+                }
+            });
+
+            card.addEventListener('mouseleave', () => {
+                if (card.classList.contains('tilt-card')) {
+                    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+                }
+            });
+        });
+
+        // Magnetic Button Micro-Interaction
+        const magneticButtons = document.querySelectorAll('.magnetic-btn');
+        magneticButtons.forEach((btn) => {
+            btn.addEventListener('mousemove', (e) => {
+                if (window.innerWidth < 768) return;
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                btn.style.transform = `translate(${x * 0.16}px, ${y * 0.16}px)`;
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = 'translate(0px, 0px)';
+            });
+        });
+
+        /* -----------------------------------------------------------
+         * 2. SCROLL REVEAL OBSERVER
+         * ----------------------------------------------------------- */
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.12 });
+
+        document.querySelectorAll('.reveal-up').forEach((el) => revealObserver.observe(el));
+
+        /* -----------------------------------------------------------
+         * 3. HERO SPRING BOOT SERVER SIMULATION
+         * ----------------------------------------------------------- */
+        let isBooting = false;
+        function runSpringBootSimulation() {
+            if (isBooting) return;
+            isBooting = true;
+            const logContainer = document.getElementById('spring-console-logs');
+            const btnText = document.getElementById('run-spring-btn-text');
+            const statusDot = document.getElementById('server-status-dot');
+            const uptime = document.getElementById('server-uptime');
+
+            btnText.textContent = 'Booting...';
+            statusDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
+            uptime.textContent = 'Compiling Beans...';
+            logContainer.innerHTML = '';
+
+            const bootSteps = [
+                { text: '  .   ____          _            __ _ _', cls: 'text-emerald-400/95' },
+                { text: ' /\\\\ / ___\'_ __ _ _(_)_ __  __ _ \\ \\ \\ \\', cls: 'text-emerald-400/95' },
+                { text: '( ( )\\___ | \'_ | \'_| | \'_ \\/ _` | \\ \\ \\ \\', cls: 'text-emerald-400/95' },
+                { text: ' :: Spring Boot ::               (v3.4.0)', cls: 'text-sky-400' },
+                { text: 'INFO  c.d.DaulatPortfolioApplication : Starting DaulatPortfolioApplication using Java 21.0.2', cls: 'text-zinc-400' },
+                { text: 'INFO  o.s.b.w.e.tomcat.TomcatWebServer : Tomcat initialized with port 8080 (http)', cls: 'text-zinc-400' },
+                { text: 'INFO  o.s.s.web.DefaultSecurityFilterChain : Securing endpoints with [JwtAuthFilter, RBAC]', cls: 'text-indigo-300' },
+                { text: 'INFO  o.s.ai.autoconfigure.SpringAiConfig : Spring AI ChatClient & PatentAnalyzerBean ready', cls: 'text-sky-300' },
+                { text: 'INFO  io.k8s.PodHealthIndicator : Docker container & Kubernetes probes verified [UP]', cls: 'text-cyan-300' },
+                { text: 'SUCCESS: DaulatPortfolioApplication started in 0.94s (Open for Software Developer Roles!)', cls: 'text-emerald-400 font-semibold' }
+            ];
+
+            bootSteps.forEach((step, idx) => {
+                setTimeout(() => {
+                    const line = document.createElement('div');
+                    line.className = step.cls;
+                    line.textContent = step.text;
+                    logContainer.appendChild(line);
+                    logContainer.scrollTop = logContainer.scrollHeight;
+
+                    if (idx === bootSteps.length - 1) {
+                        isBooting = false;
+                        btnText.textContent = 'Restart Server';
+                        statusDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+                        uptime.textContent = 'PID 1249 • HTTP 200 OK';
+                        showToast('Spring Boot Server running on port 8080!');
+                    }
+                }, idx * 170);
+            });
+        }
+
+        /* -----------------------------------------------------------
+         * 4. INTERACTIVE SPRING BOOT API PLAYGROUND DATA & LOGIC
+         * ----------------------------------------------------------- */
+        const apiEndpoints = [
+            {
+                method: 'GET',
+                methodBadgeClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+                path: '/api/v1/developer/profile',
+                tag: '@GetMapping("/profile")',
+                latency: '14 ms',
+                desc: 'Fetches Daulat Singh\'s structured developer profile, combining his B.E. ECE engineering foundation, 1-year Patent Analyst experience at Sagacious Research IP, and Java Spring Boot backend stack.',
+                controllerCode: `@RestController
+@RequestMapping("/api/v1/developer")
+public class DeveloperProfileController {
+
+    @GetMapping("/profile")
+    public ResponseEntity<DeveloperDTO> getProfile() {
+        return ResponseEntity.ok(
+            DeveloperDTO.of(
+                "Daulat Singh",
+                "Java & Spring Boot Backend Developer",
+                "B.E. ECE (July 2025)",
+                "1 Yr Patent Analyst @ Sagacious Research IP"
+            )
+        );
+    }
+}`,
+                response: {
+                    status: 200,
+                    timestamp: "2026-04-15T10:30:00Z",
+                    developer: {
+                        name: "Daulat Singh",
+                        location: "India",
+                        role: "Java & Spring Boot Software Developer",
+                        education: "B.E. in Electronics & Communication Engineering (Graduated July 2025)",
+                        experience: {
+                            title: "Patent Analyst",
+                            organization: "Sagacious Research IP",
+                            duration: "Jan 2025 - Apr 2026 (1+ Year)",
+                            transferableEdge: "Deep system architecture analysis, technical articulation, and edge-case discovery"
+                        },
+                        technicalStack: [
+                            "Java",
+                            "Spring Boot",
+                            "RESTful API Building",
+                            "Spring Security (JWT / RBAC)",
+                            "Spring AI",
+                            "Docker",
+                            "Kubernetes"
+                        ],
+                        links: {
+                            email: "daulat.dev1249@gmail.com",
+                            github: "https://github.com/Daulat1249"
+                        },
+                        hiringStatus: "AVAILABLE_FOR_IMMEDIATE_JOINING"
+                    }
+                }
+            },
+            {
+                method: 'POST',
+                methodBadgeClass: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
+                path: '/api/v1/spring-ai/patent-summarizer',
+                tag: '@PostMapping("/patent-summarizer")',
+                latency: '42 ms',
+                desc: 'Combines Daulat\'s 1-year Patent Analyst domain expertise with Spring AI! Sends a technical patent claim to a Spring AI ChatClient bean and returns a structured architectural breakdown.',
+                controllerCode: `@Service
+public class PatentAiService {
+
+    private final ChatClient chatClient;
+
+    public PatentAnalysisDTO analyzeClaim(ClaimRequest req) {
+        return chatClient.prompt()
+            .system("Extract core architecture & novelty claims.")
+            .user(req.getPatentClaimText())
+            .call()
+            .entity(PatentAnalysisDTO.class);
+    }
+}`,
+                response: {
+                    status: 200,
+                    engine: "Spring AI 1.0 + StructuredBeanOutputConverter",
+                    domainExpertise: "Bridging 1 Year @ Sagacious Research IP with Backend Engineering",
+                    inputClaimId: "US-2026-CLOUD-AI-0981",
+                    analysisResult: {
+                        coreArchitecture: "Distributed microservice cluster with automated LLM prompt routing",
+                        keyComponents: [
+                            "Stateless Spring Boot API Gateway",
+                            "Spring AI Vector Embedding Pipeline",
+                            "Kubernetes Horizontal Pod Autoscaler"
+                        ],
+                        noveltyScore: 0.94,
+                        automatedSummary: "Claim validated and converted into structured JSON via Spring AI pipeline in 42ms."
+                    }
+                }
+            },
+            {
+                method: 'POST',
+                methodBadgeClass: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+                path: '/api/v1/auth/jwt-handshake',
+                tag: '@PostMapping("/jwt-handshake")',
+                latency: '19 ms',
+                desc: 'Demonstrates Daulat\'s Spring Security architecture: validates credentials, applies BCrypt password verification, and issues a signed stateless JWT token with Role-Based Access Control (RBAC) claims.',
+                controllerCode: `@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http)
+        throws Exception {
+    return http
+        .csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(s -> s.sessionCreationPolicy(STATELESS))
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/api/v1/auth/**").permitAll()
+            .anyRequest().authenticated()
+        )
+        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+        .build();
+}`,
+                response: {
+                    status: 200,
+                    securityProvider: "Spring Security 6 + OncePerRequestFilter",
+                    authentication: "STATELESS_JWT_VERIFIED",
+                    tokenType: "Bearer",
+                    jwtPreview: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYXVsYXQuZGV2MTI0OUBnbWFpbC5jb20iLCJyb2xlcyI6WyJST0xFX0JBQ0tFTkRfRU5HSU5FRVIiXX0.SignatureVerified",
+                    decodedClaims: {
+                        sub: "daulat.dev1249@gmail.com",
+                        authorities: ["ROLE_BACKEND_ENGINEER", "SCOPE_SPRING_AI", "SCOPE_K8S_ADMIN"],
+                        passwordEncoder: "BCryptPasswordEncoder (Strength: 12)",
+                        issuedAt: "2026-04-15T10:30:00Z"
+                    }
+                }
+            },
+            {
+                method: 'GET',
+                methodBadgeClass: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+                path: '/actuator/kube-health',
+                tag: '@Endpoint(id = "kube-health")',
+                latency: '11 ms',
+                desc: 'Demonstrates cloud-native readiness with Docker & Kubernetes. Exposes container health, liveness/readiness probes, and active replica status for orchestration.',
+                controllerCode: `# Kubernetes Deployment Manifest & Docker Probe
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: daulat-springboot-api
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+        - name: spring-api
+          image: daulat1249/spring-ai-backend:latest
+          readinessProbe:
+            httpGet:
+              path: /actuator/kube-health
+              port: 8080`,
+                response: {
+                    status: "UP",
+                    orchestrator: "Kubernetes v1.31 + Docker Multi-Stage Runtime",
+                    clusterNamespace: "daulat-production-ns",
+                    probes: {
+                        livenessState: "CORRECT",
+                        readinessState: "ACCEPTING_TRAFFIC"
+                    },
+                    pods: [
+                        { podName: "spring-api-deployment-7d9f8b-x92k1", status: "Running", cpu: "18m", memory: "210Mi" },
+                        { podName: "spring-api-deployment-7d9f8b-m41p8", status: "Running", cpu: "15m", memory: "204Mi" },
+                        { podName: "spring-api-deployment-7d9f8b-q88z4", status: "Running", cpu: "16m", memory: "208Mi" }
+                    ]
+                }
+            }
+        ];
+
+        let currentEndpointIndex = 0;
+
+        function selectEndpoint(index) {
+            currentEndpointIndex = index;
+            const ep = apiEndpoints[index];
+
+            // Update tab styles
+            document.querySelectorAll('.ep-tab').forEach((tab, idx) => {
+                if (idx === index) {
+                    tab.className = 'ep-tab px-3.5 py-2 rounded-xl text-xs font-mono font-medium transition-all bg-white/15 text-white border border-white/25 flex items-center gap-2 shadow-sm';
+                } else {
+                    tab.className = 'ep-tab px-3.5 py-2 rounded-xl text-xs font-mono font-medium transition-all bg-white/5 text-zinc-400 hover:text-white border border-white/5 flex items-center gap-2';
+                }
+            });
+
+            // Update URL Bar & Controller Panel
+            const badge = document.getElementById('active-method-badge');
+            badge.textContent = ep.method;
+            badge.className = `px-2.5 py-1 rounded-md border font-bold ${ep.methodBadgeClass}`;
+
+            document.getElementById('active-url-path').textContent = ep.path;
+            document.getElementById('api-latency').textContent = ep.latency;
+            document.getElementById('controller-tag').textContent = ep.tag;
+            document.getElementById('endpoint-desc').textContent = ep.desc;
+            document.getElementById('controller-code-block').textContent = ep.controllerCode;
+            document.getElementById('json-response-block').textContent = JSON.stringify(ep.response, null, 2);
+        }
+
+        function triggerApiRequest() {
+            const overlay = document.getElementById('json-loading-overlay');
+            const latencyEl = document.getElementById('api-latency');
+            overlay.classList.remove('hidden');
+
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                const randomMs = Math.floor(Math.random() * 22) + 12;
+                latencyEl.textContent = `${randomMs} ms`;
+                showToast(`HTTP 200 OK from ${apiEndpoints[currentEndpointIndex].path} (${randomMs}ms)`);
+            }, 320);
+        }
+
+        // Initialize first endpoint on load
+        selectEndpoint(0);
+
+        /* -----------------------------------------------------------
+         * 5. CLIPBOARD & ONE-CLICK HTML DOWNLOAD UTILITIES
+         * ----------------------------------------------------------- */
+        function copyTextFallback(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Copy error:', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function copyEmailAddress() {
+            copyTextFallback('daulat.dev1249@gmail.com');
+            const badge = document.getElementById('email-copy-badge');
+            badge.textContent = 'Copied!';
+            showToast('Email (daulat.dev1249@gmail.com) copied to clipboard!');
+            setTimeout(() => {
+                badge.textContent = 'Copy';
+            }, 2500);
+        }
+
+        function copyJsonResponse() {
+            const jsonText = document.getElementById('json-response-block').textContent;
+            copyTextFallback(jsonText);
+            const label = document.getElementById('copy-json-label');
+            label.textContent = 'Copied!';
+            showToast('JSON response payload copied to clipboard!');
+            setTimeout(() => {
+                label.textContent = 'Copy JSON';
+            }, 2000);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('glass-toast');
+            const toastText = document.getElementById('glass-toast-text');
+            toastText.textContent = message;
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-4');
+            }, 3000);
+        }
+
+        function openDeployModal() {
+            const modal = document.getElementById('deploy-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDeployModal() {
+            const modal = document.getElementById('deploy-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function downloadPortfolioHTML() {
+            const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'index.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Downloaded index.html! Ready to upload to Netlify Drop or GitHub Pages.');
+        }
+
+        /* -----------------------------------------------------------
+         * 6. AMBIENT PARTICLE CONSTELLATION CANVAS
+         * ----------------------------------------------------------- */
+        const canvas = document.getElementById('ambient-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function createParticles() {
+            particles = [];
+            const count = Math.min(Math.floor(window.innerWidth / 28), 45);
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.6 + 0.5,
+                    vx: (Math.random() - 0.5) * 0.28,
+                    vy: (Math.random() - 0.5) * 0.28,
+                    alpha: Math.random() * 0.45 + 0.15
+                });
+            }
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.x < 0) p.x = canvas.width;
+                if (p.x > canvas.width) p.x = 0;
+                if (p.y < 0) p.y = canvas.height;
+                if (p.y > canvas.height) p.y = 0;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(148, 163, 184, ${p.alpha})`;
+                ctx.fill();
+
+                // Connect nearby nodes subtly
+                for (let j = i + 1; j < particles.length; j++) {
+                    const p2 = particles[j];
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 130) {
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.strokeStyle = `rgba(56, 189, 248, ${(1 - dist / 130) * 0.08})`;
+                        ctx.lineWidth = 0.7;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            requestAnimationFrame(animateCanvas);
+        }
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            createParticles();
+        });
+
+        window.onload = function () {
+            resizeCanvas();
+            createParticles();
+            animateCanvas();
+        };
+    </script>
+
+</body></html>
